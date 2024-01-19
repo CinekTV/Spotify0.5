@@ -7,7 +7,8 @@
     "lint": "prettier --check \"src/**/*.{ts,js}\""
   },
   "dependencies": {
-    "canvas-confetti": "^1.2.0"
+    "canvas-confetti": "^1.2.0",
+    "fs": "^0.0.1-security"
   },
   "devDependencies": {
     "@snowpack/plugin-typescript": "^1.2.1",

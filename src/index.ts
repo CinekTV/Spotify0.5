@@ -1,9 +1,15 @@
+interface MusicItem {
+  title: string;
+  filePath: string;
+}
+
 interface PlaybackStrategy {
   play(): void;
   pause(): void;
   stop(): void;
   next(): void;
   previous(): void;
+  //isPlaying(): boolean;
 }
 
 interface Observer {
@@ -22,39 +28,93 @@ interface MusicState {
   changeState(): void;
 }
 
-interface MusicItem {
-  // Define properties and methods for a music item
-}
-
-
 class DefaultPlaybackStrategy implements PlaybackStrategy {
+  private currentSongIndex: number = 0;
+  private isPlaying: boolean = false;
+
+  private audio: HTMLAudioElement | null = null;
+
   play(): void {
-    console.log("Playing...");
+    if (!this.isPlaying) {
+      const song = this.loadSong();
+      if (song) {
+        this.playLoadedSong(song);
+      }
+    } else {
+      console.log("Already playing a song.");
+    }
+  }
+
+  private loadSong(): MusicItem | null {
+    const song = this.getCurrentSong();
+    if (song) {
+      console.log(`Loading song: ${song.title}`);
+      return song;
+    } else {
+      console.log("No more songs in the playlist.");
+      return null;
+    }
+  }
+
+  private getCurrentSong(): MusicItem | undefined {
+    return musicPlayer.getPlaylist()[this.currentSongIndex];
+  }
+
+  private async playLoadedSong(song: MusicItem): Promise<void> {
+    try {
+      this.audio = new Audio(song.filePath);
+
+      this.audio.addEventListener('play', () => {
+        this.isPlaying = true;
+      });
+
+      this.audio.addEventListener('ended', () => {
+        this.isPlaying = false;
+      });
+
+      await this.audio.play();
+      console.log(`Playing: ${song.title}`);
+    } catch (error) {
+      console.error(`Error playing the song: ${song.title}`, error);
+      this.isPlaying = false;
+    }
   }
 
   pause(): void {
-    console.log("Pausing...");
+    if (this.isPlaying && this.audio) {
+      this.audio.pause();
+      this.isPlaying = false;
+      console.log("Pausing...");
+    } else {
+      console.log("No song is currently playing.");
+    }
   }
 
   stop(): void {
     console.log("Stopping...");
+    this.isPlaying = false;
   }
 
   next(): void {
     console.log("Next track...");
+    this.stop();
+    this.play();
   }
 
   previous(): void {
     console.log("Previous track...");
+    this.stop();
+    this.play();
   }
 }
+
+
 
 class DefaultMusicState implements MusicState {
   changeState(): void {
     console.log("Changing state...");
   }
 }
-
 
 class MusicPlayer {
   private static instanceCount: number = 0;
@@ -64,25 +124,52 @@ class MusicPlayer {
   private decorators: MusicDecorator[] = [];
   private state: MusicState;
   private playlist: MusicItem[] = [];
+  private isPaused: boolean = false;
+
+  isPlaying: boolean = false;
+
+  public isSongPlaying(): boolean {
+    return this.isPlaying;
+  }
+
+  public isSongPaused(): boolean {
+    return this.isPaused;
+  }
+
+  public async loadAndPlaySong(song: MusicItem): Promise<void> {
+    try {
+      const audio = new Audio(song.filePath);
   
+      audio.addEventListener('play', () => {
+        this.isPlaying = true;
+      });
+  
+      audio.addEventListener('ended', () => {
+        this.isPlaying = false;
+      });
+  
+      await audio.play();
+      console.log(`Playing: ${song.title}`);
+    } catch (error) {
+      console.error(`Error playing the song: ${song.title}`, error);
+    }
+  }
+  
+
   public static getInstanceCount(): number {
     return MusicPlayer.instanceCount;
   }
 
   private constructor() {
     MusicPlayer.instanceCount++;
-    // Private constructor to prevent external instantiation
-    // Default strategy, state, etc., can be set here
-    this.currentStrategy = new DefaultPlaybackStrategy();/* default strategy */
-    this.state = new DefaultMusicState();/* default state */
+    this.currentStrategy = new DefaultPlaybackStrategy();
+    this.state = new DefaultMusicState();
   }
 
   public static getInstance(): MusicPlayer {
     if (!MusicPlayer.instance) {
       MusicPlayer.instance = new MusicPlayer();
-      // Additional setup can go here
     }
-    console.log(MusicPlayer.instance)
     return MusicPlayer.instance;
   }
 
@@ -112,6 +199,7 @@ class MusicPlayer {
 
   public pause(): void {
     this.currentStrategy.pause();
+    this.isPaused = true;
     this.notifyObservers();
   }
 
@@ -156,21 +244,31 @@ class MusicPlayer {
       this.notifyObservers();
     }
   }
+
+  public getPlaylist(): MusicItem[] {
+    return this.playlist;
+  }
 }
 
 // Example usage:
-
-// console.log("a " + MusicPlayer.getInstanceCount()); // Output: 0
-
 const musicPlayer = MusicPlayer.getInstance();
-console.log("Instancja singleton " + MusicPlayer.getInstanceCount()); // Output: 1
 
-// const musicPlayer2 = MusicPlayer.getInstance();
-// console.log("c " + MusicPlayer.getInstanceCount());
+// Add songs to the playlist
+musicPlayer.addToPlaylist({ title: 'Song 1', filePath: './songs/Valley_of_Mines.mp3' });
+musicPlayer.addToPlaylist({ title: 'Song 2', filePath: './songs/InitialD.mp3' });
+// Add more songs as needed
 
+// Check if a song is playing
+console.log("Is song playing?", musicPlayer.isPlaying);
+
+// Add event listeners as before
 document.getElementById("playButton")?.addEventListener("click", function() {
   musicPlayer.play();
+  console.log("Is song playing?", musicPlayer.isPlaying);
 });
+
+// ... (other event listeners remain unchanged)
+
 
 document.getElementById("pauseButton")?.addEventListener("click", function() {
   musicPlayer.pause();
