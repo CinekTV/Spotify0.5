@@ -1,0 +1,13 @@
+{
+    "songs": [
+      { "title": "Song 1", "filePath": "./songs/Valley_of_Mines.mp3" },
+      { "title": "Song 2", "filePath": "./songs/InitialD.mp3" },
+      { "title": "Song 3", "filePath": "./songs/Old_Camp.mp3" },
+      { "title": "Song 4", "filePath": "./songs/Destiny.mp3" },
+      { "title": "Song 5", "filePath": "./songs/Sobieski.mp3" },
+      { "title": "Song 6", "filePath": "./songs/Faring.mp3" },
+      { "title": "Song 7", "filePath": "./songs/Believe.mp3" },
+      { "title": "Song 8", "filePath": "./songs/Careless.mp3" }
+    ]
+  }
+  

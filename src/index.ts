@@ -9,7 +9,6 @@ interface PlaybackStrategy {
   stop(): void;
   next(): void;
   previous(): void;
-  //isPlaying(): boolean;
 }
 
 interface Observer {
@@ -29,15 +28,25 @@ interface MusicState {
 }
 
 class DefaultPlaybackStrategy implements PlaybackStrategy {
-  private currentSongIndex: number = 0;
-  private isPlaying: boolean = false;
-
   private audio: HTMLAudioElement | null = null;
   private playbackPosition: number = 0;
+  private isPlaying: boolean = false;
+  private currentSongIndex: number = 0;
+
+  private isLooping: boolean = false;
+  private isRandom: boolean = false;
+
+  setLoop(isLooping: boolean): void {
+    this.isLooping = isLooping;
+  }
+
+  setRandom(isRandom: boolean): void {
+    this.isRandom = isRandom;
+  }
 
   play(): void {
     if (!this.isPlaying) {
-      const song = this.loadSong();
+      const song = this.getCurrentSong();
       if (song) {
         this.playLoadedSong(song);
       }
@@ -46,19 +55,63 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
     }
   }
 
-  private loadSong(): MusicItem | null {
-    const song = this.getCurrentSong();
-    if (song) {
-      console.log(`Loading song: ${song.title}`);
-      return song;
+  pause(): void {
+    if (this.isPlaying && this.audio) {
+      this.audio.pause();
+      this.playbackPosition = this.audio.currentTime;
+      this.isPlaying = false;
+      console.log("Pausing...");
     } else {
-      console.log("No more songs in the playlist.");
-      return null;
+      console.log("No song is currently playing.");
     }
   }
 
-  private getCurrentSong(): MusicItem | undefined {
-    return musicPlayer.getPlaylist()[this.currentSongIndex];
+  stop(): void {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+      this.playbackPosition = 0;
+      this.isPlaying = false;
+      console.log("Stopping...");
+    } else {
+      console.log("No song is currently playing.");
+    }
+  }
+
+  next(): void {
+    this.stop();
+    const playlist = musicPlayer.getPlaylist();
+    if (playlist.length > 0) {
+      if (this.isRandom) {
+        this.playRandomSong(playlist);
+      } else {
+        this.currentSongIndex = (this.currentSongIndex + 1) % playlist.length;
+        const nextSong = playlist[this.currentSongIndex];
+        this.playLoadedSong(nextSong);
+      }
+    } else {
+      console.log("Playlist is empty.");
+    }
+  }
+
+ previous(): void {
+    this.stop();
+    const playlist = musicPlayer.getPlaylist();
+    if (playlist.length > 0) {
+      // Move to the previous song in the playlist
+      this.currentSongIndex = (this.currentSongIndex - 1 + playlist.length) % playlist.length;
+      const previousSong = playlist[this.currentSongIndex];
+      this.playLoadedSong(previousSong);
+    } else {
+      console.log("Playlist is empty.");
+    }
+  }
+
+  private playRandomSong(playlist: MusicItem[]): void {
+    const randomIndex = Math.floor(Math.random() * playlist.length);
+    this.currentSongIndex = randomIndex;
+    const randomSong = playlist[randomIndex];
+    this.playLoadedSong(randomSong);
   }
 
   private async playLoadedSong(song: MusicItem): Promise<void> {
@@ -75,6 +128,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
 
       this.audio.addEventListener('ended', () => {
         this.isPlaying = false;
+        this.next();
       });
 
       await this.audio.play();
@@ -85,35 +139,16 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
     }
   }
 
-  pause(): void {
-    if (this.isPlaying && this.audio) {
-      this.audio.pause();
-      this.playbackPosition = this.audio.currentTime;
-      this.isPlaying = false;
-      console.log("Pausing...");
+  private getCurrentSong(): MusicItem | null {
+    const playlist = musicPlayer.getPlaylist();
+    if (playlist.length > 0) {
+      return playlist[this.currentSongIndex];
     } else {
-      console.log("No song is currently playing.");
+      console.log("Playlist is empty.");
+      return null;
     }
   }
-  stop(): void {
-    console.log("Stopping...");
-    this.isPlaying = false;
-  }
-
-  next(): void {
-    console.log("Next track...");
-    this.stop();
-    this.play();
-  }
-
-  previous(): void {
-    console.log("Previous track...");
-    this.stop();
-    this.play();
-  }
 }
-
-
 
 class DefaultMusicState implements MusicState {
   changeState(): void {
@@ -129,7 +164,7 @@ class MusicPlayer {
   private decorators: MusicDecorator[] = [];
   private state: MusicState;
   private playlist: MusicItem[] = [];
-  private isPaused: boolean = false;
+  private currentSongIndex: number = 0;
 
   isPlaying: boolean = false;
 
@@ -137,29 +172,24 @@ class MusicPlayer {
     return this.isPlaying;
   }
 
-  public isSongPaused(): boolean {
-    return this.isPaused;
-  }
-
   public async loadAndPlaySong(song: MusicItem): Promise<void> {
     try {
       const audio = new Audio(song.filePath);
-  
+
       audio.addEventListener('play', () => {
         this.isPlaying = true;
       });
-  
+
       audio.addEventListener('ended', () => {
         this.isPlaying = false;
       });
-  
+
       await audio.play();
       console.log(`Playing: ${song.title}`);
     } catch (error) {
       console.error(`Error playing the song: ${song.title}`, error);
     }
   }
-  
 
   public static getInstanceCount(): number {
     return MusicPlayer.instanceCount;
@@ -204,7 +234,6 @@ class MusicPlayer {
 
   public pause(): void {
     this.currentStrategy.pause();
-    this.isPaused = true;
     this.notifyObservers();
   }
 
@@ -253,14 +282,41 @@ class MusicPlayer {
   public getPlaylist(): MusicItem[] {
     return this.playlist;
   }
+
+  public setCurrentSongIndex(index: number): void {
+    this.currentSongIndex = index;
+  }
+
+  public getCurrentSongIndex(): number {
+    return this.currentSongIndex;
+  }
+
+  public async loadSongsFromFolder(folderPath: string): Promise<void> {
+    try {
+      const response = await fetch(`${folderPath}songs.json`);
+      const data = await response.json();
+
+      const songs = data.songs || [];
+
+      songs.forEach((song: MusicItem) => {
+        this.addToPlaylist(song);
+      });
+
+      console.log("Songs loaded from folder:", this.getPlaylist());
+    } catch (error) {
+      console.error("Error loading songs from folder:", error);
+    }
+  }
+
 }
 
 // Example usage:
 const musicPlayer = MusicPlayer.getInstance();
 
 // Add songs to the playlist
-musicPlayer.addToPlaylist({ title: 'Song 1', filePath: './songs/Valley_of_Mines.mp3' });
-musicPlayer.addToPlaylist({ title: 'Song 2', filePath: './songs/InitialD.mp3' });
+// musicPlayer.addToPlaylist({ title: 'Song 1', filePath: './songs/Valley_of_Mines.mp3' });
+// musicPlayer.addToPlaylist({ title: 'Song 2', filePath: './songs/InitialD.mp3' });
+musicPlayer.loadSongsFromFolder('./songs/');
 // Add more songs as needed
 
 // Check if a song is playing
@@ -271,9 +327,6 @@ document.getElementById("playButton")?.addEventListener("click", function() {
   musicPlayer.play();
   console.log("Is song playing?", musicPlayer.isPlaying);
 });
-
-// ... (other event listeners remain unchanged)
-
 
 document.getElementById("pauseButton")?.addEventListener("click", function() {
   musicPlayer.pause();
