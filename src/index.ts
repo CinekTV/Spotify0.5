@@ -160,13 +160,13 @@ class MusicPlayer {
 
 // Example usage:
 
-console.log("a " +MusicPlayer.getInstanceCount()); // Output: 0
+// console.log("a " + MusicPlayer.getInstanceCount()); // Output: 0
 
 const musicPlayer = MusicPlayer.getInstance();
-console.log("b " + MusicPlayer.getInstanceCount()); // Output: 1
+console.log("Instancja singleton " + MusicPlayer.getInstanceCount()); // Output: 1
 
-const musicPlayer2 = MusicPlayer.getInstance();
-console.log("c " +MusicPlayer.getInstanceCount());
+// const musicPlayer2 = MusicPlayer.getInstance();
+// console.log("c " + MusicPlayer.getInstanceCount());
 
 document.getElementById("playButton")?.addEventListener("click", function() {
   musicPlayer.play();

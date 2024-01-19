@@ -1,5 +1,37 @@
 body{
-  margin-top: 10%;
+  width: 100%;
   text-align: center;
   background-color: grey;
+}
+
+header{
+  background-color: brown;
+  width: fill;
+  height: fit-content;
+}
+
+.master{
+  display: flex;
+  flex-direction: row;
+}
+
+main{
+flex: 5;
+}
+
+aside{
+  background-color: blueviolet;
+  height: auto;
+}
+
+.left_side{
+  flex: 1;
+}
+
+.right_side{
+  flex: 1;
+}
+
+footer{
+  background-color: cadetblue;
 }
