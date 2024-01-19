@@ -76,6 +76,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       if (song) {
         this.playLoadedSong(song);
         musicPlayer.changeState(new PlayingState());
+        this.decorate();
       }
     } else {
       console.log("Already playing a song.");
@@ -89,6 +90,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       this.isPlaying = false;
       console.log("Pausing...");
       musicPlayer.changeState(new PausedState());
+      this.decorate();
     } else {
       console.log("No song is currently playing.");
     }
@@ -102,6 +104,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       this.isPlaying = false;
       console.log("Stopping...");
       musicPlayer.changeState(new StoppedState());
+      this.decorate();
     } else {
       console.log("No song is currently playing.");
     }
@@ -190,6 +193,10 @@ previous(): void {
       return null;
     }
   }
+
+  private decorate(): void {
+    musicPlayer.getDecorators().forEach(decorator => decorator.decorate());
+  }
 }
 
 class DefaultMusicState implements MusicState {
@@ -197,6 +204,21 @@ class DefaultMusicState implements MusicState {
     console.log("Changing state...");
   }
 }
+
+class SongNameDisplayDecorator implements MusicDecorator {
+  private musicPlayer: MusicPlayer;
+
+  constructor(musicPlayer: MusicPlayer) {
+    this.musicPlayer = musicPlayer;
+  }
+
+  decorate(): void {
+    const currentSong = this.musicPlayer.getPlaylist()[this.musicPlayer.getCurrentSongIndex()];
+    console.log(`Current Song: ${currentSong ? currentSong.title : 'No song playing'}`);
+  }
+}
+
+
 
 class MusicPlayer {
   private static instanceCount: number = 0;
@@ -207,6 +229,7 @@ class MusicPlayer {
   private state: MusicState;
   private playlist: MusicItem[] = [];
   private currentSongIndex: number = 0;
+  
 
   isPlaying: boolean = false;
   isLooping: boolean = false;
@@ -215,7 +238,6 @@ class MusicPlayer {
   public isSongPlaying(): boolean {
     return this.isPlaying;
   }
-
   public async loadAndPlaySong(song: MusicItem): Promise<void> {
     try {
       const audio = new Audio(song.filePath);
@@ -296,6 +318,11 @@ class MusicPlayer {
     this.currentStrategy.previous();
     this.notifyObservers();
   }
+
+  public getDecorators(): MusicDecorator[] {
+    return this.decorators;
+  }
+
 
   public addDecorator(decorator: MusicDecorator): void {
     this.decorators.push(decorator);
@@ -381,7 +408,11 @@ musicPlayer.loadSongsFromFolder('./songs/');
 // Add more songs as needed
 
 // Check if a song is playing
-console.log("Is song playing?", musicPlayer.isPlaying);
+//console.log("Is song playing?", musicPlayer.isPlaying);
+const songNameDisplayDecorator = new SongNameDisplayDecorator(musicPlayer);
+musicPlayer.addDecorator(songNameDisplayDecorator);
+
+
 
 // Add event listeners as before
 document.getElementById("playButton")?.addEventListener("click", function() {

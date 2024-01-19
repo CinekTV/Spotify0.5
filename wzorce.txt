@@ -3,7 +3,7 @@ Singleton,
 Strategia,
 
 TO DO:
-Decorator (do zrobienia, bo psuje all),
+Decorator (teorytycznie jest, bo może display'ować song name),
 Observer  (chyba jest, ale nic nie robi jeszcze),
 State (zaimplementowany, nic nie robi),
 Kompozyt
