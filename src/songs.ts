@@ -1,3 +1,8 @@
+export function scan_for_songs(){
+
+}
+
+
 export type Song = {
     songname: string,
     artist1: string,

@@ -9,6 +9,8 @@ interface PlaybackStrategy {
   stop(): void;
   next(): void;
   previous(): void;
+  setLoop(isLooping: boolean): void;
+  setRandom(isRandom: boolean): void;
 }
 
 interface Observer {
@@ -82,37 +84,50 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
     this.stop();
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
-      if (this.isRandom) {
-        this.playRandomSong(playlist);
-      } else {
-        this.currentSongIndex = (this.currentSongIndex + 1) % playlist.length;
-        const nextSong = playlist[this.currentSongIndex];
-        this.playLoadedSong(nextSong);
-      }
+        if (this.isRandom) {
+            this.playRandomSong(playlist);
+        } else {
+            if (musicPlayer.isLooping) {
+                this.currentSongIndex = (this.currentSongIndex + 1) % playlist.length;
+            } else {
+                this.currentSongIndex = Math.min(this.currentSongIndex + 1, playlist.length - 1);
+            }
+            const nextSong = playlist[this.currentSongIndex];
+            this.playLoadedSong(nextSong);
+        }
     } else {
-      console.log("Playlist is empty.");
+        console.log("Playlist is empty.");
     }
-  }
+}
 
- previous(): void {
+
+  previous(): void {
     this.stop();
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
-      // Move to the previous song in the playlist
-      this.currentSongIndex = (this.currentSongIndex - 1 + playlist.length) % playlist.length;
-      const previousSong = playlist[this.currentSongIndex];
-      this.playLoadedSong(previousSong);
+        if (this.isRandom) {
+            this.playRandomSong(playlist);
+        } else {
+            // Move to the previous song in the playlist
+            if (musicPlayer.isLooping) {
+                this.currentSongIndex = (this.currentSongIndex - 1 + playlist.length) % playlist.length;
+            } else {
+                this.currentSongIndex = Math.max(this.currentSongIndex - 1, 0);
+            }
+            const previousSong = playlist[this.currentSongIndex];
+            this.playLoadedSong(previousSong);
+        }
     } else {
-      console.log("Playlist is empty.");
+        console.log("Playlist is empty.");
     }
-  }
+}
 
-  private playRandomSong(playlist: MusicItem[]): void {
+  playRandomSong(playlist: MusicItem[]): void {
     const randomIndex = Math.floor(Math.random() * playlist.length);
     this.currentSongIndex = randomIndex;
     const randomSong = playlist[randomIndex];
     this.playLoadedSong(randomSong);
-  }
+}
 
   private async playLoadedSong(song: MusicItem): Promise<void> {
     try {
@@ -167,6 +182,8 @@ class MusicPlayer {
   private currentSongIndex: number = 0;
 
   isPlaying: boolean = false;
+  isLooping: boolean = false;
+  isRandom: boolean = false;
 
   public isSongPlaying(): boolean {
     return this.isPlaying;
@@ -308,6 +325,14 @@ class MusicPlayer {
     }
   }
 
+  setLoop(isLooping: boolean): void {
+    this.currentStrategy.setLoop(isLooping);
+  }
+
+  setRandom(isRandom: boolean): void {
+    this.currentStrategy.setRandom(isRandom);
+  }
+
 }
 
 // Example usage:
@@ -343,3 +368,18 @@ document.getElementById("nextButton")?.addEventListener("click", function() {
 document.getElementById("previousButton")?.addEventListener("click", function() {
   musicPlayer.previous();
 });
+
+// Add event listener for the loop button
+document.getElementById("loop")?.addEventListener("click", function() {
+  const loopButton = document.getElementById("loop") as HTMLButtonElement;
+  musicPlayer.isLooping = !musicPlayer.isLooping; // Toggle loop mode directly on MusicPlayer
+  loopButton.innerText = musicPlayer.isLooping ? "Loop (ON)" : "Loop (OFF)";
+});
+
+// Add event listener for the random button
+document.getElementById("random")?.addEventListener("click", function() {
+  const randomButton = document.getElementById("random") as HTMLButtonElement;
+  musicPlayer.isRandom = !musicPlayer.isRandom; // Toggle random mode directly on MusicPlayer
+  randomButton.innerText = musicPlayer.isRandom ? "Random (ON)" : "Random (OFF)";
+});
+
