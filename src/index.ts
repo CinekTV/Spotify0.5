@@ -44,6 +44,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
 
   setRandom(isRandom: boolean): void {
     this.isRandom = isRandom;
+    musicPlayer.setRandom(isRandom); // Synchronize with MusicPlayer
   }
 
   play(): void {
@@ -84,7 +85,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
     this.stop();
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
-        if (this.isRandom) {
+        if (musicPlayer.isRandom) {
             this.playRandomSong(playlist);
         } else {
             if (musicPlayer.isLooping) {
@@ -101,11 +102,11 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
 }
 
 
-  previous(): void {
+previous(): void {
     this.stop();
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
-        if (this.isRandom) {
+        if (musicPlayer.isRandom) {
             this.playRandomSong(playlist);
         } else {
             // Move to the previous song in the playlist
@@ -330,7 +331,7 @@ class MusicPlayer {
   }
 
   setRandom(isRandom: boolean): void {
-    this.currentStrategy.setRandom(isRandom);
+    this.isRandom = isRandom;
   }
 
 }
