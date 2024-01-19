@@ -1,3 +1,6 @@
+let songlist: object;
+let song_display = document.getElementById("song-display") as HTMLElement;
+
 interface MusicItem {
   title: string;
   filePath: string;
@@ -29,6 +32,26 @@ interface MusicState {
   changeState(): void;
 }
 
+
+class PlayingState implements MusicState {
+  changeState(): void {
+    console.log("Music is currently playing.");
+  }
+}
+
+class PausedState implements MusicState {
+  changeState(): void {
+    console.log("Music is currently paused.");
+  }
+}
+
+class StoppedState implements MusicState {
+  changeState(): void {
+    console.log("Music is currently stopped.");
+  }
+}
+
+
 class DefaultPlaybackStrategy implements PlaybackStrategy {
   private audio: HTMLAudioElement | null = null;
   private playbackPosition: number = 0;
@@ -52,6 +75,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       const song = this.getCurrentSong();
       if (song) {
         this.playLoadedSong(song);
+        musicPlayer.changeState(new PlayingState());
       }
     } else {
       console.log("Already playing a song.");
@@ -64,6 +88,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       this.playbackPosition = this.audio.currentTime;
       this.isPlaying = false;
       console.log("Pausing...");
+      musicPlayer.changeState(new PausedState());
     } else {
       console.log("No song is currently playing.");
     }
@@ -76,6 +101,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       this.playbackPosition = 0;
       this.isPlaying = false;
       console.log("Stopping...");
+      musicPlayer.changeState(new StoppedState());
     } else {
       console.log("No song is currently playing.");
     }
@@ -217,6 +243,7 @@ class MusicPlayer {
     MusicPlayer.instanceCount++;
     this.currentStrategy = new DefaultPlaybackStrategy();
     this.state = new DefaultMusicState();
+    this.state = new StoppedState();
   }
 
   public static getInstance(): MusicPlayer {
@@ -320,7 +347,15 @@ class MusicPlayer {
         this.addToPlaylist(song);
       });
 
-      console.log("Songs loaded from folder:", this.getPlaylist());
+      console.log("Songs loaded from folder:", this.getPlaylist()[0]);
+      //console.log(typeof( this.getPlaylist()));
+      for (let index = 0; index < this.getPlaylist().length; index++) {
+        const element = this.getPlaylist()[index];
+        let songlist: string | undefined = this.getPlaylist()[index].title;
+        if(song_display != undefined){
+          song_display.innerText += songlist + "\n";
+        } 
+      }
     } catch (error) {
       console.error("Error loading songs from folder:", error);
     }

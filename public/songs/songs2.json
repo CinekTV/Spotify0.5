@@ -1,0 +1,8 @@
+{
+    "songs": [
+      { "title": "GRRRLS", "filePath": "./songs/GRRRLS.mp3", "author": "" },
+      { "title": "Mmm Mmm Yeah Yeah", "filePath": "./songs/MmmMmm.mp3", "author": "" },
+      { "title": "Frag Out", "filePath": "./songs/FragOut.mp3", "author": "DJ ASSASS1N" }
+    ]
+  }
+  
