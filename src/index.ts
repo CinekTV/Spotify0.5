@@ -33,6 +33,7 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
   private isPlaying: boolean = false;
 
   private audio: HTMLAudioElement | null = null;
+  private playbackPosition: number = 0;
 
   play(): void {
     if (!this.isPlaying) {
@@ -64,6 +65,10 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
     try {
       this.audio = new Audio(song.filePath);
 
+      if (this.playbackPosition > 0) {
+        this.audio.currentTime = this.playbackPosition;
+      }
+
       this.audio.addEventListener('play', () => {
         this.isPlaying = true;
       });
@@ -83,13 +88,13 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
   pause(): void {
     if (this.isPlaying && this.audio) {
       this.audio.pause();
+      this.playbackPosition = this.audio.currentTime;
       this.isPlaying = false;
       console.log("Pausing...");
     } else {
       console.log("No song is currently playing.");
     }
   }
-
   stop(): void {
     console.log("Stopping...");
     this.isPlaying = false;
