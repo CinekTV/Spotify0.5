@@ -14,6 +14,7 @@ interface PlaybackStrategy {
   previous(): void;
   setLoop(isLooping: boolean): void;
   setRandom(isRandom: boolean): void;
+  setVolume(volume: number): void;
 }
 
 interface Observer {
@@ -53,10 +54,24 @@ class StoppedState implements MusicState {
 
 
 class DefaultPlaybackStrategy implements PlaybackStrategy {
+
+  constructor() {
+    // ... Existing code
+    this.setVolume(this.volume);
+  }
+
+  setVolume(volume: number): void {
+    this.volume = volume;
+    if (this.audio) {
+      this.audio.volume = volume / 100;
+    }
+  }
+
   private audio: HTMLAudioElement | null = null;
   private playbackPosition: number = 0;
   private isPlaying: boolean = false;
   private currentSongIndex: number = 0;
+  private volume: number = 100; // Default volume
 
   private isLooping: boolean = false;
   private isRandom: boolean = false;
@@ -232,7 +247,7 @@ class MusicPlayer {
   
 
   isPlaying: boolean = false;
-  isLooping: boolean = false;
+  isLooping: boolean = true;
   isRandom: boolean = false;
 
   public isSongPlaying(): boolean {
@@ -396,6 +411,10 @@ class MusicPlayer {
     this.isRandom = isRandom;
   }
 
+  public getCurrentStrategy(): PlaybackStrategy {
+    return this.currentStrategy;
+  }
+
 }
 
 // Example usage:
@@ -450,3 +469,12 @@ document.getElementById("random")?.addEventListener("click", function() {
   randomButton.innerText = musicPlayer.isRandom ? "Random (ON)" : "Random (OFF)";
 });
 
+const volumeRange = document.getElementById("volumeRange") as HTMLInputElement;
+
+volumeRange.addEventListener("input", function () {
+  const volume = parseInt(volumeRange.value);
+  const currentStrategy = musicPlayer.getCurrentStrategy();
+  if (currentStrategy) {
+    currentStrategy.setVolume(volume);
+  }
+});
