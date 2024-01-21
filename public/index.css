@@ -35,3 +35,8 @@ aside{
 footer{
   background-color: cadetblue;
 }
+
+.creator{
+  color: cadetblue;
+  display: inline-block;
+}

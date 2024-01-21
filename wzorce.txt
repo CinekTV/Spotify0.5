@@ -1,11 +1,11 @@
 DONE:
 Singleton,
 Strategia,
+Decorator
+State (zaimplementowany, zmienia kolor przycisku),
+Observer
 
 TO DO:
-Decorator (teorytycznie jest, bo może display'ować song name),
-Observer  (chyba jest, ale nic nie robi jeszcze),
-State (zaimplementowany, nic nie robi),
 Kompozyt
 
 WYJEBANE:
