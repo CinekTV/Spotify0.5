@@ -1,5 +1,12 @@
+// Deklaracje zmiennych i elementów interfejsu użytkownika
 let songlist: object;
 let song_display = document.getElementById("song-display") as HTMLElement;
+let currsongDisplay = document.getElementById("current_song") as HTMLElement;
+let pervs = document.getElementById("pervs") as HTMLElement;
+let nexts = document.getElementById("nexts") as HTMLElement;
+
+
+//--------------------Interfejsy i klasy dla komponentów muzycznych i strategii odtwarzania--------------------------------------
 
 interface MusicItem {
   title: string;
@@ -7,8 +14,9 @@ interface MusicItem {
   getTitle(): string;
 }
 
+//wzorzec strategii
 interface PlaybackStrategy {
-  audio: HTMLAudioElement | null; // Add this line
+  audio: HTMLAudioElement | null;
   play(): void;
   pause(): void;
   stop(): void;
@@ -19,39 +27,42 @@ interface PlaybackStrategy {
   setVolume(volume: number): void;
 }
 
+//wzorzec observator
 interface Observer {
   update(): void;
 }
 
+//wzorzec decorator
 interface MusicDecorator {
   decorate(): void;
 }
 
+//wzorzec komendy ostatecznie nie użyty
 interface MusicCommand {
   execute(): void;
 }
 
 
 
-
+//Kompozyt, ostatecznie zaimplementowany, jednak nie użyty, ale działa ;)
 interface MusicComponent {
   play(): void;
   stop(): void;
   getDuration(): number;
 }
 
-
+//wzorzes Stanu
 interface MusicState {
   changeState(): void;
 }
 
-
+//Stara klasa implementująca metodę komponentu, nie użyta
 class Song implements MusicComponent, MusicItem {
   public title: string;
   public filePath: string;
   private audio: HTMLAudioElement;
 
-  constructor(title: string, filePath: string) {
+  constructor(title: string, filePath: string) { //kontruktor
     this.title = title;
     this.filePath = filePath;
     this.audio = new Audio(filePath);
@@ -59,12 +70,10 @@ class Song implements MusicComponent, MusicItem {
 
   play(): void {
     // Implementation to play a song
-    console.log(`Playing: ${this.title}`);
   }
 
   stop(): void {
     // Implementation to stop a song
-    console.log(`Stopping: ${this.title}`);
   }
 
   getDuration(): number {
@@ -80,7 +89,7 @@ class Song implements MusicComponent, MusicItem {
   }
 }
 
-// Composite class representing a playlist
+// Klasa implemetująca kompozyt, zaweirająca playlisty
 class Playlist implements MusicComponent {
   private playlist: MusicComponent[] = [];
   private songsByName: Map<string, MusicComponent> = new Map();
@@ -122,37 +131,47 @@ class Playlist implements MusicComponent {
   }
 }
 
-class SongNameLoggingDecorator implements MusicDecorator {
+class SongNameLoggingDecorator implements MusicDecorator {// Wzorzec dekorator
   private musicPlayer: MusicPlayer;
 
   constructor(musicPlayer: MusicPlayer) {
     this.musicPlayer = musicPlayer;
   }
-  update(): void{
+  update(): void{// update dekoratora coś ala odświeżenie
     this.decorate();
-    console.log("ELO LEO")
   }
 
   decorate(): void {
-    const currentSongIndex = this.musicPlayer.getCurrentSongIndex();
+    let currentSongIndex = this.musicPlayer.getCurrentSongIndex();
     const currentPlaylist = this.musicPlayer.getPlaylist();
-    const currentSong = currentPlaylist[currentSongIndex];
-    const nextSong = currentPlaylist[(currentSongIndex + 1) % currentPlaylist.length];
-    const previousSong = currentPlaylist[(currentSongIndex - 1 + currentPlaylist.length) % currentPlaylist.length];
-    console.log(currentSong)
-    console.log(`Current Song: ${currentSong.title ? currentSong.title: 'No song playing'}`);
-    console.log(`Next Song: ${nextSong.title ? nextSong.title : 'No next song'}`);
-    console.log(`Previous Song: ${previousSong.title ? previousSong.title : 'No previous song'}`);
+    if(currentSongIndex == this.musicPlayer.getPlaylist().length){
+      currentSongIndex--;
+    }
+    //wyświetlanie nazw piosenek przed, aktualnej i po
+    const currentSong = currentPlaylist[currentSongIndex]; //aktualna piuosenka
+    const nextSong = currentPlaylist[(currentSongIndex + 1) % currentPlaylist.length];//następna piuosenka
+    const previousSong = currentPlaylist[(currentSongIndex - 1 + currentPlaylist.length) % currentPlaylist.length];//poprzednia piuosenka
+    
+    //dekorowanie samo w sobie, "wstrzykiwanie" w HTMLa textu z nazwami
+    if(musicPlayer.isRandom){
+      pervs.innerText = nexts.innerText = "?"
+    }else{
+      currsongDisplay.innerText = currentSong.title
+      pervs.innerText = previousSong.title
+      nexts.innerText = nextSong.title
+    }
   }
 }
 
 
-class PlayingState implements MusicState {
+class PlayingState implements MusicState {// wzorzec stanu grającego
   changeState(): void {
     console.log("Music is currently playing.");
-    let buttonplay :HTMLElement | null = document.getElementById("playButton")
-    let buttonpause :HTMLElement | null = document.getElementById("pauseButton")
-    let buttonstop :HTMLElement | null = document.getElementById("stopButton")
+    //deklaracje przycisków, na które wpływa diagram stanu
+    let buttonplay :HTMLElement | null = document.getElementById("playButton") //przycisk grania
+    let buttonpause :HTMLElement | null = document.getElementById("pauseButton")//przycisk gpauzy
+    let buttonstop :HTMLElement | null = document.getElementById("stopButton")//przycisk stopu
+    //"kolorawnie" przycosku danego stanu
     if(buttonplay && buttonpause && buttonstop){
           buttonplay.style.backgroundColor = "green";
           buttonpause.style.backgroundColor = "";
@@ -161,12 +180,13 @@ class PlayingState implements MusicState {
   }
 }
 
-class PausedState implements MusicState {
+class PausedState implements MusicState { // wzorzec stanu zapauzowanego
   changeState(): void {
     console.log("Music is currently paused.");
-    let buttonplay :HTMLElement | null = document.getElementById("playButton")
-    let buttonpause :HTMLElement | null = document.getElementById("pauseButton")
-    let buttonstop :HTMLElement | null = document.getElementById("stopButton")
+    let buttonplay :HTMLElement | null = document.getElementById("playButton")  //przycisk grania
+    let buttonpause :HTMLElement | null = document.getElementById("pauseButton")//przycisk gpauzy
+    let buttonstop :HTMLElement | null = document.getElementById("stopButton")//przycisk stopu
+    //"kolorawnie" przycosku danego stanu
     if(buttonplay && buttonpause && buttonstop){
       buttonplay.style.backgroundColor = "";
       buttonpause.style.backgroundColor = "orange";
@@ -175,12 +195,13 @@ class PausedState implements MusicState {
   }
 }
 
-class StoppedState implements MusicState {
+class StoppedState implements MusicState {// wzorzec stanu zastopowanego
   changeState(): void {
     console.log("Music is currently stopped.");
-    let buttonplay :HTMLElement | null = document.getElementById("playButton")
-    let buttonpause :HTMLElement | null = document.getElementById("pauseButton")
-    let buttonstop :HTMLElement | null = document.getElementById("stopButton")
+    let buttonplay :HTMLElement | null = document.getElementById("playButton")//przycisk grania
+    let buttonpause :HTMLElement | null = document.getElementById("pauseButton")//przycisk gpauzy
+    let buttonstop :HTMLElement | null = document.getElementById("stopButton")//przycisk stopu
+    //"kolorawnie" przycosku danego stanu
     if(buttonplay && buttonpause && buttonstop){
       buttonplay.style.backgroundColor = "";
       buttonpause.style.backgroundColor = "";
@@ -190,22 +211,21 @@ class StoppedState implements MusicState {
 }
 
 
-class DefaultPlaybackStrategy implements PlaybackStrategy {
+class DefaultPlaybackStrategy implements PlaybackStrategy { //implementacja wzorca strategii
   
 
-  public audio: HTMLAudioElement | null = null;
-  private playbackPosition: number = 0;
-  private isPlaying: boolean = false;
-  private currentSongIndex: number = 0;
-  private volume: number = 100; // Default volume
+  public audio: HTMLAudioElement | null = null; // właśności utworu samego w sobie
+  private playbackPosition: number = 0; // aktualna pozycja odtwarzanego utworu, czas jak się odtawrza
+  private isPlaying: boolean = false; //flaga pilnująca czy odtwarzacz odtwarza piosenke
+  private currentSongIndex: number = 0; //Podstawowy index
+  private volume: number = 100; // Podstawowy poziom głośności
  // private decorator: MusicDecorator
 
   constructor() {
-    // ... Existing code
     this.setVolume(this.volume);
   }
 
-  setVolume(volume: number): void {
+  setVolume(volume: number): void {// 
     this.volume = volume;
     if (this.audio) {
       this.audio.volume = volume / 100;
@@ -215,16 +235,16 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
   private isLooping: boolean = false;
   private isRandom: boolean = false;
 
-  setLoop(isLooping: boolean): void {
+  setLoop(isLooping: boolean): void { // strategia Loopowania
     this.isLooping = isLooping;
   }
 
   setRandom(isRandom: boolean): void {
     this.isRandom = isRandom;
-    musicPlayer.setRandom(isRandom); // Synchronize with MusicPlayer
+    musicPlayer.setRandom(isRandom);  // Strategia losowania
   }
 
-  play(): void {
+  play(): void { // strategia odwtarzania
     if (!this.isPlaying) {
       const song = this.getCurrentSong();
       if (song) {
@@ -236,32 +256,30 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
     }
   }
 
-  pause(): void {
+  pause(): void { // strategia pauzy
     if (this.isPlaying && this.audio) {
       this.audio.pause();
       this.playbackPosition = this.audio.currentTime;
       this.isPlaying = false;
-      console.log("Pausing...");
       musicPlayer.changeState(new PausedState());
     } else {
       console.log("No song is currently playing.");
     }
   }
 
-  stop(): void {
+  stop(): void { // strategia stopu
     if (this.audio) {
       this.audio.pause();
       this.audio.currentTime = 0;
       this.playbackPosition = 0;
       this.isPlaying = false;
-      console.log("Stopping...");
       musicPlayer.changeState(new StoppedState());
     } else {
       console.log("No song is currently playing.");
     }
   }
 
-  next(): void {
+  next(): void { // strategia kolejnego utowru
     this.stop();
     let buttonplay :HTMLElement | null = document.getElementById("playButton")
     let buttonstop :HTMLElement | null = document.getElementById("stopButton")
@@ -269,28 +287,28 @@ class DefaultPlaybackStrategy implements PlaybackStrategy {
       buttonplay.style.backgroundColor = "green";
       buttonstop.style.backgroundColor = "";
     }
-    this.decorate();
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
-        if (musicPlayer.isRandom) {
-            this.playRandomSong(playlist);
+        if (musicPlayer.isRandom) { //sprawdzenie czy zaimplementowane są już jakieś strategie
+            this.playRandomSong(playlist);// i na tej podstawie wybór kolejnej piosenki
+            this.decorate();
         } else {
             if (musicPlayer.isLooping) {
                 this.currentSongIndex = (this.currentSongIndex + 1) % playlist.length;
             } else {
                 this.currentSongIndex = Math.min(this.currentSongIndex + 1, playlist.length - 1);
             }
+                this.decorate();
             const nextSong = playlist[this.currentSongIndex];
             this.playLoadedSong(nextSong);
         }
     } else {
         console.log("Playlist is empty.");
     }
-
 }
 
 
-previous(): void {
+previous(): void { // strategia poprzedniego utworu
     this.stop();
     let buttonplay :HTMLElement | null = document.getElementById("playButton")
     let buttonstop :HTMLElement | null = document.getElementById("stopButton")
@@ -301,10 +319,9 @@ previous(): void {
     this.decorate();
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
-        if (musicPlayer.isRandom) {
-            this.playRandomSong(playlist);
+        if (musicPlayer.isRandom) {//sprawdzenie czy zaimplementowane są już jakieś strategie
+            this.playRandomSong(playlist);// i na tej podstawie wybór kolejnej piosenki
         } else {
-            // Move to the previous song in the playlist
             if (musicPlayer.isLooping) {
                 this.currentSongIndex = (this.currentSongIndex - 1 + playlist.length) % playlist.length;
             } else {
@@ -318,14 +335,15 @@ previous(): void {
     }
   }
 
-  playRandomSong(playlist: MusicItem[]): void {
+  playRandomSong(playlist: MusicItem[]): void { //jeśli jest włączona strategia losowej piosenki, włącza sie owa metoda, która losuje kolejny utwór do zagrania
     const randomIndex = Math.floor(Math.random() * playlist.length);
-    this.currentSongIndex = randomIndex;
+    musicPlayer.currentSongIndex = randomIndex;
     const randomSong = playlist[randomIndex];
+    currsongDisplay.innerText = randomSong.title;
     this.playLoadedSong(randomSong);
 }
 
-  private async playLoadedSong(song: MusicItem): Promise<void> {
+  private async playLoadedSong(song: MusicItem): Promise<void> { // metoda "wczytująca" otwór, który zostanie kolejno zagrany
     try {
       this.audio = new Audio(song.filePath);
 
@@ -343,14 +361,13 @@ previous(): void {
       });
 
       await this.audio.play();
-      console.log(`Playing: ${song.title}`);
     } catch (error) {
       console.error(`Error playing the song: ${song.title}`, error);
       this.isPlaying = false;
     }
   }
 
-  private getCurrentSong(): MusicItem | null {
+  private getCurrentSong(): MusicItem | null { // pobieranie informacju o akutalnym utworze, aby ją udpostępnić innym klasom
     const playlist = musicPlayer.getPlaylist();
     if (playlist.length > 0) {
       return playlist[this.currentSongIndex];
@@ -380,21 +397,19 @@ class SongNameDisplayDecorator implements MusicDecorator {
 
   decorate(): void {
     const currentSong = this.musicPlayer.getPlaylist()[this.musicPlayer.getCurrentSongIndex()];
-    //console.log(`Current Song: ${currentSong ? currentSong.title : 'No song playing'}`);
   }
 }
 
 
-class SongChangeObserver implements Observer {
+class SongChangeObserver implements Observer { //implementacja observatora
   private musicPlayer: MusicPlayer;
-  //private songnames: SongNameLoggingDecorator;
 
-  constructor(musicPlayer: MusicPlayer) {
+  constructor(musicPlayer: MusicPlayer) { // kontruktor wzoraca observator
     this.musicPlayer = musicPlayer;
     //this.songnames = songnames
   }
 
-  update(): void {
+  update(): void {// typowa dla observatora metoda update, która jest uzywana w przypadku zaobserwowania zmiany
     const currentSongIndex = this.musicPlayer.getCurrentSongIndex();
     const currentSong = this.musicPlayer.getPlaylist()[currentSongIndex];
     // this.musicPlayer.addDecorator
@@ -408,25 +423,26 @@ class SongChangeObserver implements Observer {
 
 
 
-class MusicPlayer { //Singleton
+class MusicPlayer { //Singleton klasa możnaby żec główna. Posiada on całą masę informacji o obecnych strategiacha stanach utworu,
+  // a przede wszystkim zapenia jedną instacje odtwarzacza, aby nie było problemow komunikacji między innymi klasami
   private static instanceCount: number = 0;
-  private static instance: MusicPlayer | null = null;
-  private currentStrategy: PlaybackStrategy;
-  private observers: Observer[] = [];
+  private static instance: MusicPlayer | null = null; //Tutaj podstawowe zapamiętywanie wzorców, meteod i innych rzeczy, które są następnie używane w innych klasach
+  private currentStrategy: PlaybackStrategy; 
+  private observers: Observer[] = []; 
   private decorators: MusicDecorator[] = [];
-  private state: MusicState;
+  private state: MusicState; //aktualny stan
   private playlist: MusicItem[] = [];
-  private currentSongIndex: number = 0;
+  public currentSongIndex: number = 0; // numer aktualnei odtarzanej piosenki
   
 
   isPlaying: boolean = false;
   isLooping: boolean = true;
   isRandom: boolean = false;
 
-  public isSongPlaying(): boolean {
+  public isSongPlaying(): boolean {// sprawdzenie czy piosenka jest aktualnie odtwarzana
     return this.isPlaying;
   }
-  public async loadAndPlaySong(song: MusicItem): Promise<void> {
+  public async loadAndPlaySong(song: MusicItem): Promise<void> {//metoda która włącza kolejna w kolejności piosenke po zakończeniu poprzedniej
     try {
       const audio = new Audio(song.filePath);
 
@@ -437,112 +453,109 @@ class MusicPlayer { //Singleton
       audio.addEventListener('ended', () => {
         this.isPlaying = false;
       });
-
+      // this.currentSongIndex++;
       await audio.play();
-      console.log(`Playing: ${song.title}`);
     } catch (error) {
       console.error(`Error playing the song: ${song.title}`, error);
     }
   }
 
-  public static getInstanceCount(): number {
-    return MusicPlayer.instanceCount;
+  public static getInstanceCount(): number { //pobieranie wiadomości o tym ile Singleton ma instacji
+    return MusicPlayer.instanceCount; //metoda głównie używana do debugowania i sprawdzania czy Singleton jest poprawnie zaqimplementowany
   }
 
-  private constructor() {
+  private constructor() { //kontruktor
     MusicPlayer.instanceCount++;
     this.currentStrategy = new DefaultPlaybackStrategy();
     this.state = new DefaultMusicState();
     this.state = new StoppedState();
   }
 
-  public static getInstance(): MusicPlayer {
+  public static getInstance(): MusicPlayer { //pobieranie wiadomości instacji Singletona
     if (!MusicPlayer.instance) {
       MusicPlayer.instance = new MusicPlayer();
     }
     return MusicPlayer.instance;
   }
 
-  public setPlaybackStrategy(strategy: PlaybackStrategy): void {
+  public setPlaybackStrategy(strategy: PlaybackStrategy): void { //ustawianie strategi ostawrzacza
     this.currentStrategy = strategy;
   }
 
-  public registerObserver(observer: Observer): void {
+  public registerObserver(observer: Observer): void {//rejestrowanie observera
     this.observers.push(observer);
   }
 
-  public unregisterObserver(observer: Observer): void {
+  public unregisterObserver(observer: Observer): void {//wyrejestrowanie observera
     const index = this.observers.indexOf(observer);
     if (index !== -1) {
       this.observers.splice(index, 1);
     }
   }
 
-  public notifyObservers(): void {
+  public notifyObservers(): void { //powiadamianie observera
     this.observers.forEach(observer => observer.update());
   }
 
-  public play(): void {
+  public play(): void { //wysyłanie inputu dotyczątcego odwarzania utwóru
     this.currentStrategy.play();
     //this.notifyObservers();
   }
 
-  public pause(): void {
+  public pause(): void { //wysyłanie inputu dotyczątcego zapauzowania utwóru
     this.currentStrategy.pause();
     // this.notifyObservers();
   }
 
-  public stop(): void {
+  public stop(): void { //wysyłanie inputu dotyczątcego zatrzymania utowru
     this.currentStrategy.stop();
     // this.notifyObservers();
   }
 
-  public next(): void {
+  public next(): void { //wysyłanie inputu dotyczątcego następnego utwóru
     this.currentSongIndex++;
     if (this.currentSongIndex >= this.getPlaylist().length) {
-      //console.log("Wyszło szydło z worka: " + this.getPlaylist().length)
       this.currentSongIndex = 0;
     }
     this.currentStrategy.next();
     // this.notifyObservers();
   }
 
-  public previous(): void {
+  public previous(): void {//wysyłanie inputu dotyczątcego poprzedniego utwóru
     this.currentSongIndex--;
     if (this.currentSongIndex < 0) {
-      //console.log("Wyszło szydło z worka: " + this.getPlaylist().length)
       this.currentSongIndex = this.getPlaylist().length;
     }
     this.currentStrategy.previous();
     // this.notifyObservers();
   }
 
-  public getDecorators(): MusicDecorator[] {
+  public getDecorators(): MusicDecorator[] { //pobieranie inormacji o dekoratorach
     return this.decorators;
   }
 
 
-  public addDecorator(decorator: MusicDecorator): void {
+  public addDecorator(decorator: MusicDecorator): void { //dodawanie dekoratora
     this.decorators.push(decorator);
   }
 
-  public executeCommand(command: MusicCommand): void {
+  public executeCommand(command: MusicCommand): void { //ekzekucja komendy, ostatecznie nie używana, wzorzec nie zaimplenetowany; placehodler na przyszłość
     command.execute();
   }
 
-  public changeState(state: MusicState): void {
+  public changeState(state: MusicState): void { //informowanie o zmianie stanu
     this.state = state;
     this.state.changeState();
     this.notifyObservers();
-    //this.getDecorators().forEach(decorator => decorator.decorate()); // Ensure decorate is called here
+    //this.getDecorators().forEach(decorator => decorator.decorate());
   }
 
-  public addToPlaylist(item: MusicItem): void {
+  public addToPlaylist(item: MusicItem): void { //dodawanie do playlisty - komponent
     this.playlist.push(item);
     this.notifyObservers();
   }
 
-  public removeFromPlaylist(item: MusicItem): void {
+  public removeFromPlaylist(item: MusicItem): void {//usuwanie z playlisty - komponent
     const index = this.playlist.indexOf(item);
     if (index !== -1) {
       this.playlist.splice(index, 1);
@@ -550,32 +563,31 @@ class MusicPlayer { //Singleton
     }
   }
 
-  public getPlaylist(): MusicItem[] {
+  public getPlaylist(): MusicItem[] { //pobieranie informacji o playliście
     return this.playlist;
   }
 
-  public setCurrentSongIndex(index: number): void {
+  public setCurrentSongIndex(index: number): void { //ustawanie aktualnego indeksu piosenki tj. numeru utworu aklutalnie odtwarzanego względem playlisty
     this.currentSongIndex = index;
   }
 
-  public getCurrentSongIndex(): number {
+  public getCurrentSongIndex(): number { //pobieranie aktualnego indeksu pioseneke tj. numeru utworu aklutalnie odtwarzanego względem playlisty
     return this.currentSongIndex;
   }
 
   public async loadSongsFromFolder(folderPath: string): Promise<void> {
     try {
-      const response = await fetch(`${folderPath}songs.json`);
+      const response = await fetch(`${folderPath}songs.json`); // pobieranie utworór (playlisty) do odtwarzacza
       const data = await response.json();
 
       const songs = data.songs || [];
 
       songs.forEach((song: MusicItem) => {
         this.addToPlaylist(song);
-        console.log("S: " + song.title)
       });
 
-      console.log("Songs loaded from folder:", this.getPlaylist()[0]);
-      //console.log(typeof( this.getPlaylist()));
+     // console.log("Songs loaded from folder:", this.getPlaylist()[0]); // wszystkie wczytane poprawnie piosenki pojedynczo
+      currsongDisplay.innerText = this.getPlaylist()[0].title;
       for (let index = 0; index < this.getPlaylist().length; index++) {
         const element = this.getPlaylist()[index];
         let songlist: string | undefined = this.getPlaylist()[index].title;
@@ -589,28 +601,28 @@ class MusicPlayer { //Singleton
   }
 
   setLoop(isLooping: boolean): void {
-    this.currentStrategy.setLoop(isLooping);
+    this.currentStrategy.setLoop(isLooping); //ustawienie loopa
   }
 
   setRandom(isRandom: boolean): void {
-    this.isRandom = isRandom;
+    this.isRandom = isRandom; //ustawienie losowości
   }
 
-  public getCurrentStrategy(): PlaybackStrategy {
+  public getCurrentStrategy(): PlaybackStrategy { // pobranie informacji o aktualnej strategii
     return this.currentStrategy;
   }
 
 }
 
 
-class EqualizerDecorator implements MusicDecorator {
+class EqualizerDecorator implements MusicDecorator { // decorator - equlizer
   private musicPlayer: MusicPlayer;
-  private equalizerSettings: number[]; // Adjust these values based on your equalizer requirements
+  private equalizerSettings: number[];
   private audioContext: AudioContext | null;
   private sourceNode: MediaElementAudioSourceNode | null;
   private equalizerNode: BiquadFilterNode | null;
 
-  constructor(musicPlayer: MusicPlayer, equalizerSettings: number[]) {
+  constructor(musicPlayer: MusicPlayer, equalizerSettings: number[]) { // kontryuktor equlizera
     this.musicPlayer = musicPlayer;
     this.equalizerSettings = equalizerSettings;
     this.audioContext = null;
@@ -623,12 +635,11 @@ class EqualizerDecorator implements MusicDecorator {
     this.decorate();
   }
 
-  decorate(): void {
+  decorate(): void { // dekorowanie quzlizerem utworu
     const currentSongIndex = this.musicPlayer.getCurrentSongIndex();
     const currentSong = this.musicPlayer.getPlaylist()[currentSongIndex];
     
     if (currentSong) {
-    // console.log(`Equalizing: ${currentSong.title} (Index: ${currentSongIndex})`);
     this.applyEqualizerSettings(this.musicPlayer.getCurrentStrategy().audio);
   } else {
     console.log('No current song found.');
@@ -637,7 +648,6 @@ class EqualizerDecorator implements MusicDecorator {
 
   private applyEqualizerSettings(audio: HTMLAudioElement | null): void {
     if (audio && this.audioContext) {
-      // Check if the audio element is already connected to an AudioNode
       if (this.audioContext.state === 'suspended') {
         this.audioContext.resume(); // Resume the AudioContext if it's in a suspended state
       }
@@ -665,20 +675,15 @@ class EqualizerDecorator implements MusicDecorator {
 }
 
 
-
-
-// Example usage:
+//podstawowa zmienna, rozpoczęcie instacji, singletona
 const musicPlayer = MusicPlayer.getInstance();
 
-// Add songs to the playlist
 
 
-
+//rejestracja observatora
 const songChangeObserver = new SongChangeObserver(musicPlayer);
 musicPlayer.registerObserver(songChangeObserver)
-// musicPlayer.addToPlaylist({ title: 'Song 1', filePath: './songs/Valley_of_Mines.mp3' });
-// musicPlayer.addToPlaylist({ title: 'Song 2', filePath: './songs/InitialD.mp3' });
-// musicPlayer.loadSongsFromFolder('./songs/');
+
 const playlistFromFolder = new Playlist();
 const playlistByName = new Playlist();
 
@@ -687,7 +692,7 @@ musicPlayer.loadSongsFromFolder('./songs/').then(() => {
   // Additional actions after loading songs from the folder, if needed
 });
 
-// Add songs to playlistByName by name
+// Add songs to playlistByName by name - kompozyt
 const song1 = new Song('Song 1', './songs/GRRRLS.mp3');
 const song2 = new Song('Song 2', './songs/MmmMmm.mp3');
 playlistByName.add(song1);
@@ -697,11 +702,7 @@ playlistByName.add(song2);
 let currentPlaylist = playlistFromFolder;
 
 
-
-// Add more songs as needed
-
-// Check if a song is playing
-//console.log("Is song playing?", musicPlayer.isPlaying);
+// dodawanie decoratorów
 
 const songNameDisplayDecorator = new SongNameDisplayDecorator(musicPlayer);
 musicPlayer.addDecorator(songNameDisplayDecorator);
@@ -718,10 +719,9 @@ musicPlayer.addDecorator(equalizerDecorator);
 
 
 
-// Add event listeners as before
+// Wsyzstskie przyciski i eventlistenery, który wprawiają w ruch maszyne
 document.getElementById("playButton")?.addEventListener("click", function() {
   musicPlayer.play();
-  console.log("Is song playing?", musicPlayer.isPlaying);
 });
 
 document.getElementById("pauseButton")?.addEventListener("click", function() {
@@ -744,16 +744,22 @@ document.getElementById("previousButton")?.addEventListener("click", function() 
 document.getElementById("loop")?.addEventListener("click", function() {
   const loopButton = document.getElementById("loop") as HTMLButtonElement;
   musicPlayer.isLooping = !musicPlayer.isLooping; // Toggle loop mode directly on MusicPlayer
-  loopButton.innerText = musicPlayer.isLooping ? "Loop (ON)" : "Loop (OFF)";
+  loopButton.style.backgroundColor = musicPlayer.isLooping ? "green" : "";
 });
 
 // Add event listener for the random button
 document.getElementById("random")?.addEventListener("click", function() {
   const randomButton = document.getElementById("random") as HTMLButtonElement;
   musicPlayer.isRandom = !musicPlayer.isRandom; // Toggle random mode directly on MusicPlayer
-  randomButton.innerText = musicPlayer.isRandom ? "Random (ON)" : "Random (OFF)";
+  if(musicPlayer.isRandom){
+    pervs.innerText = nexts.innerText = "?"
+  }else{
+    //songDisplay.update();
+  }
+  randomButton.style.backgroundColor = musicPlayer.isRandom ? "green" : "";
 });
 
+//deklaracja  nasłuchiwania zmiana w suwaku głośności
 const volumeRange = document.getElementById("volumeRange") as HTMLInputElement;
 
 volumeRange.addEventListener("input", function () {
@@ -777,10 +783,10 @@ document.getElementById("switchPlaylistButton")?.addEventListener("click", async
   for (const song of playlist) {
     await playSong(song);
   }
-
-  // You can perform other actions here, such as updating the UI to display the current playlist
 });
 
+
+//granie piosenek pojedynczo z kompozytu, jednakże nie słychać ich - wszystują się poprawnie ale nie są dodawane do akltualnej playlisty
 async function playSong(song: MusicComponent): Promise<void> {
   return new Promise<void>((resolve) => {
     song.play();

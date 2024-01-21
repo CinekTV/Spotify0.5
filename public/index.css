@@ -1,13 +1,19 @@
 body{
-  width: 100%;
   text-align: center;
   background-color: grey;
+  padding-left: 15%;
+  padding-right: 15%;
+  padding-top: 5%;
 }
 
 header{
-  background-color: brown;
+  background-color: black;
+  color: green;
   width: fill;
   height: fit-content;
+  font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  /* font-weight: bold; */
+  font-size: 5cap;
 }
 
 .master{
@@ -19,8 +25,15 @@ main{
 flex: 5;
 }
 
+main>button{
+  margin-bottom: 15px;
+}
+
 aside{
-  background-color: blueviolet;
+  font-size: 3cap;
+  font-weight: bold;
+  padding-top: 3%;
+  background-color: darkgrey;
   height: auto;
 }
 
@@ -33,10 +46,79 @@ aside{
 }
 
 footer{
-  background-color: cadetblue;
+  background-color: black;
+  color: green;
+  font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
 
 .creator{
-  color: cadetblue;
+  color: black;
   display: inline-block;
+}
+#song-display{
+  margin-top: 15%;
+  font-size: medium;
+}
+
+#album_img{
+  margin-top: 5%;
+  margin-bottom: 5%;
+  object-fit: cover;
+  object-position: 0px 20%;
+  width: 350px;
+  height: 350px;
+}
+
+button{
+  width: 60px;
+  height: 45px;
+}
+
+.epic{
+  margin-top: -5px;
+  margin-left: -15px;
+  object-fit:contain;
+  width: 60px;
+  height: 40px;
+}
+
+.epic2{
+  margin-top: -5px;
+  margin-left: -15px;
+  object-fit:contain;
+  width: 60px;
+  height: 40px;
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+.volume{
+  font-weight: bold;
+  font-size: 2cap;
+}
+
+.next_song, .pre_song{
+  font-size: 1ch;
+}
+
+.pre_song{
+  margin-top: 130%;
+}
+
+.current_song{
+  font-size: larger;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#volumeRange{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 300px;
+  height: 0px;
+  margin: 15px;
+  outline: none;
+  background: #d3d3d3;
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+  cursor: pointer;
 }
