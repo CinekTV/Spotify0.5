@@ -1,0 +1,31 @@
+{
+    "playlists": [
+      {
+        "title": "Playlist 1",
+        "items": [
+          {
+            "title": "Song 1",
+            "filePath": "./songs/song1.mp3"
+          },
+          {
+            "title": "Song 2",
+            "filePath": "./songs/song2.mp3"
+          }
+        ]
+      },
+      {
+        "title": "Playlist 2",
+        "items": [
+          {
+            "title": "Song 3",
+            "filePath": "./songs/song3.mp3"
+          },
+          {
+            "title": "Song 4",
+            "filePath": "./songs/song4.mp3"
+          }
+        ]
+      }
+    ]
+  }
+  

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Web site created using create-snowpack-app" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/index.css" />
+    <title>Spotify 0.5</title>
+  </head>
+  <body>
+    <header>SPOTIFY 0.5</header>
+    <div class="master">
+      <aside class="left_side">
+        <div class="pre_song">
+          Previous song:
+          <div id="pervs" class="pervs">bababoi</div>
+        </div><br>
+        <div class="next_song">
+          Next song:
+          <div id="nexts" class="nexts">Deja vu</div>
+        </div>
+      </aside>
+      <main>
+        <script type="module" src="/dist/playlist.js"></script>
+        <img src="images/placeholder.png" alt="placeholder" srcset="" id="album_img"><br>
+        <button id="previousButton" type="button" class="btn btn-secondary"><img src="images/previous.jpg" class="epic"></button>
+        <button id="playButton" type="button" class="btn btn-secondary"><img src="images/play.png" class="epic"></button>
+        <button id="pauseButton" type="button" class="btn btn-secondary"><img src="images/pause.webp" class="epic"></button>
+        <button id="stopButton" type="button" class="btn btn-secondary"><img src="images/stop.webp" class="epic"></button>
+        <button id="nextButton" type="button" class="btn btn-secondary"><img src="images/previous.jpg" class="epic2"></button><br>
+        <button id="loop" type="button" class="btn btn-secondary"><img src="images/loop.png" class="epic"></button>
+        <button id="random" type="button" class="btn btn-secondary"><img src="images/random.png" class="epic"></button><br>
+        <div id ="current_song" class="current_song">Current song goes here</div><br>
+        <div class="volume">
+          Volume: <br>
+          <input class="form-range" type="range" id="volumeRange" min="0" max="100" step="1" value="80" />
+        </div>
+        <a href="/playlists.html" class="btn btn-secondary">Switch Playlist</a><br>
+      </main>
+      <aside class="right_side">
+        Utwory w playliście:<br>
+        <pre id="song-display"></pre>
+      </aside>
+    </div>
+    <footer>Created by: <div class="creator">Cinek</div></footer>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  </body>
+</html>

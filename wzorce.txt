@@ -1,0 +1,12 @@
+DONE:
+Singleton,
+Strategia,
+Decorator
+State (zaimplementowany, zmienia kolor przycisku),
+Observer
+
+TO DO:
+Kompozyt
+
+WYJEBANE:
+~Command~ (wyjebany, bo tylko przeszkadza),
